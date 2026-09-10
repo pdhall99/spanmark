@@ -1,0 +1,54 @@
+default_language_version:
+  python: python3.10
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: debug-statements
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: name-tests-test
+        args: [--pytest-test-first]
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6 # keep consistent with hatch config
+    hooks:
+      # Run the linter
+      - id: ruff-check
+        types_or: [python, pyi, jupyter]
+        args: [--fix, --config=pyproject.toml]
+      # Run the formatter
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]
+        args: [--config=pyproject.toml]
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.29.0
+    hooks:
+      - id: zizmor
+
+  - repo: local
+    hooks:
+      - id: check-types
+        name: check types
+        entry: hatch check types
+        language: system
+        types: [python]
+        pass_filenames: false
+        require_serial: true

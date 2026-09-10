@@ -1,0 +1,417 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+  pull_request:
+    branches: ["main"]
+    types: [ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RUNNER: &runner "ubuntu-24.04"
+  JOB_TIMEOUT: &job_timeout 30
+  TOOL_PYTHON_VERSION: "3.10"
+  HATCH_VERSION: "1.18.0"
+  UV_VERSION: "0.12.13"
+  DISTRIBUTION_NAME: "spanmark"
+  IMPORT_NAME: "spanmark"
+  DOCS_ENABLED: "false"
+  DOCS_DIR: "site"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+jobs:
+  precommit:
+    name: Pre-commit
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning] disabled for release tags
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ env.TOOL_PYTHON_VERSION }}
+
+      - name: Install hatch
+        run: uv tool install "hatch==$HATCH_VERSION"
+
+      - name: Run pre-commit
+        run: hatch run pre-commit:ci
+
+  discover-tests:
+    name: Discover test matrix
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      coverage_env: ${{ steps.matrix.outputs.coverage_env }}
+      coverage_python: ${{ steps.matrix.outputs.coverage_python }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning] disabled for release tags
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ env.TOOL_PYTHON_VERSION }}
+
+      - name: Install hatch
+        run: uv tool install "hatch==$HATCH_VERSION"
+
+      - name: Read Hatch test matrix
+        id: matrix
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          environments = json.loads(
+              subprocess.check_output(["hatch", "env", "show", "--json"], text=True)
+          )
+
+          rows = []
+          seen = set()
+          for name, config in environments.items():
+              if name != "hatch-test" and not name.startswith("hatch-test."):
+                  continue
+              python_version = config.get("python")
+              if python_version and python_version not in seen:
+                  rows.append({"python": python_version, "environment": name})
+                  seen.add(python_version)
+
+          if not rows:
+              raise SystemExit("No Python versions found in the Hatch test matrix")
+
+          coverage = next(
+              (
+                  row
+                  for row in rows
+                  if row["python"] == os.environ["TOOL_PYTHON_VERSION"]
+              ),
+              rows[0],
+          )
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              matrix = json.dumps({"include": rows}, separators=(",", ":"))
+              print(f"matrix={matrix}", file=output)
+              print(f"coverage_env={coverage['environment']}", file=output)
+              print(f"coverage_python={coverage['python']}", file=output)
+          PY
+
+  test:
+    name: "Test / Python ${{ matrix.python }}"
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    needs: discover-tests
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.discover-tests.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Required for hatch-vcs to resolve the version from tags
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning] disabled for release tags
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+
+      - name: Install hatch
+        run: uv tool install "hatch==$HATCH_VERSION"
+
+      - name: Run tests
+        env:
+          TEST_ENVIRONMENT: ${{ matrix.environment }}
+          TEST_PYTHON: ${{ matrix.python }}
+        run: |
+          hatch test --python "$TEST_PYTHON" --cover
+          hatch run "$TEST_ENVIRONMENT:cov-report-markdown" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Rename coverage files
+        env:
+          TEST_PYTHON: ${{ matrix.python }}
+        run: |
+          shopt -s nullglob
+          files=(.coverage*)
+          if ((${#files[@]} == 0)); then
+            echo "No coverage files found" >&2
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            mv "$f" "$f.$TEST_PYTHON"
+          done
+
+      - name: Upload coverage files
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coverage-${{ matrix.python }}
+          path: .coverage*
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: ignore
+
+  coverage:
+    name: Coverage report
+    if: github.ref_type != 'tag'
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    needs: [discover-tests, test]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning] disabled for release tags
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ needs.discover-tests.outputs.coverage_python }}
+
+      - name: Install hatch
+        run: uv tool install "hatch==$HATCH_VERSION"
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: coverage*
+          merge-multiple: true
+
+      - name: Combine and report
+        env:
+          COVERAGE_ENVIRONMENT: ${{ needs.discover-tests.outputs.coverage_env }}
+        run: |
+          hatch run "$COVERAGE_ENVIRONMENT:cov-combine"
+          hatch run "$COVERAGE_ENVIRONMENT:cov-report"
+          hatch run "$COVERAGE_ENVIRONMENT:cov-report-markdown" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+  docs:
+    name: Build docs
+    if: github.ref_type != 'tag'
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    outputs:
+      enabled: ${{ steps.config.outputs.enabled }}
+    steps:
+      - name: Read docs configuration
+        id: config
+        run: echo "enabled=$DOCS_ENABLED" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.config.outputs.enabled == 'true'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        if: steps.config.outputs.enabled == 'true'
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning] disabled for release tags
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        if: steps.config.outputs.enabled == 'true'
+        with:
+          python-version: ${{ env.TOOL_PYTHON_VERSION }}
+
+      - name: Install hatch
+        if: steps.config.outputs.enabled == 'true'
+        run: uv tool install "hatch==$HATCH_VERSION"
+
+      - name: Build docs
+        if: steps.config.outputs.enabled == 'true'
+        run: hatch run docs:build
+
+      - name: Upload Pages artifact
+        if: steps.config.outputs.enabled == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+        with:
+          path: ${{ env.DOCS_DIR }}
+
+  pages:
+    name: Deploy docs
+    if: needs.docs.outputs.enabled == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: docs
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+
+  build:
+    name: Build package
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    needs: [precommit, test]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }} # zizmor: ignore[cache-poisoning] disabled for release tags
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ env.TOOL_PYTHON_VERSION }}
+
+      - name: Install hatch
+        run: uv tool install "hatch==$HATCH_VERSION"
+
+      - name: Validate release tag
+        if: github.ref_type == 'tag'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must use X.Y.Z numeric SemVer form; got '$TAG'" >&2
+            exit 1
+          fi
+
+      - name: Verify tagged commit is on main
+        if: github.ref_type == 'tag'
+        run: |
+          tag_commit=$(git rev-list -n 1 "$GITHUB_REF_NAME")
+          if ! git merge-base --is-ancestor "$tag_commit" origin/main; then
+            echo "Release tag '$GITHUB_REF_NAME' must point to a commit on main" >&2
+            exit 1
+          fi
+
+      - name: Build
+        run: hatch build
+
+      - name: Smoke-test release wheel
+        if: github.ref_type == 'tag'
+        run: |
+          uv venv --python "$TOOL_PYTHON_VERSION" /tmp/package-smoke
+          uv pip install --python /tmp/package-smoke/bin/python dist/*.whl
+          TAG="$GITHUB_REF_NAME" /tmp/package-smoke/bin/python - <<'PY'
+          import os
+          from importlib import import_module
+          from importlib.metadata import version
+
+          assert version(os.environ["DISTRIBUTION_NAME"]) == os.environ["TAG"]
+          import_module(os.environ["IMPORT_NAME"])
+          PY
+
+      - name: Upload release distributions
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dist
+          path: dist/
+
+  ci-gate:
+    name: CI gate
+    if: ${{ always() && (github.event_name != 'push' || github.ref_type != 'tag') }}
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    needs:
+      - precommit
+      - test
+      - build
+    steps:
+      - name: Require precommit, test, build
+        env:
+          PRECOMMIT: ${{ needs.precommit.result }}
+          TEST: ${{ needs.test.result }}
+          BUILD: ${{ needs.build.result }}
+        run: |
+          test "$PRECOMMIT" = success
+          test "$TEST" = success
+          test "$BUILD" = success
+
+  pypi:
+    name: Publish to PyPI
+    if: github.ref_type == 'tag'
+    runs-on: *runner
+    environment:
+      name: pypi
+      url: https://pypi.org/project/spanmark/
+    timeout-minutes: *job_timeout
+    needs: build
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+
+  github-release:
+    name: GitHub Release
+    if: github.ref_type == 'tag'
+    runs-on: *runner
+    timeout-minutes: *job_timeout
+    needs: pypi
+    permissions:
+      contents: write
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --generate-notes \
+            --verify-tag
