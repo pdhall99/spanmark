@@ -4,7 +4,7 @@ A lightweight span-annotation widget for interactive Python environments.
 
 Add span annotations to text datasets in Jupyter Notebook, JupyterLab, VS Code, Google Colab, marimo, or other [anywidget](https://anywidget.dev/)-compatible environments.
 
-![spanmark widget showing named-entity spans and document decisions](https://github.com/pdhall99/spanmark/blob/main/assets/screenshot.png)
+![spanmark widget showing named-entity spans and document decisions](https://raw.githubusercontent.com/pdhall99/spanmark/main/assets/screenshot.png)
 
 ## Table of contents
 
