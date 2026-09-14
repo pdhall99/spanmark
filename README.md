@@ -8,14 +8,26 @@ Add span annotations to text datasets in Jupyter Notebook, JupyterLab, VS Code, 
 
 ## Table of contents
 
+- [Background](#background)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Use cases](#use-cases)
 - [Related tools](#related-tools)
 - [Compatibility and versioning](#compatibility-and-versioning)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
 - [License](#license)
+
+## Background
+
+spanmark helps you to make a human-verified dataset of labelled, character-based spans over document text.
+Such datasets are needed for the training and evaluation of **span recognition** tasks such as
+
+- **Named entity recognition (NER)** — people, organizations, locations, products, dates, and other entity mentions
+- **PII and sensitive-data annotation** — names, addresses, account identifiers, phone numbers, email addresses, and spans for redaction datasets
+- **Keyphrase, terminology, and concept extraction** — domain terms in technical, legal, biomedical, financial, or product text
+- **Slot and field extraction** — destinations, dates, quantities, order numbers, product names, and similar values in conversational or transactional text
+- **Event-trigger and mention detection** — the exact text that expresses an event or concept
+- **Model correction and human-in-the-loop review** — preload model suggestions, then accept, remove, relabel, or supplement them
 
 ## Installation
 
@@ -343,18 +355,6 @@ session.save()
 
 Normal session close and workflow completion also checkpoint.
 If the process is interrupted before that happens, keep the hidden autosave file beside the JSONL so spanmark can recover it on the next open.
-
-## Use cases
-
-spanmark helps you to make a human-verified dataset of labelled, character-based spans over document text.
-Such datasets are needed for the training and evaluation of **span recognition** tasks such as
-
-- **Named entity recognition (NER)** — people, organizations, locations, products, dates, and other entity mentions
-- **PII and sensitive-data annotation** — names, addresses, account identifiers, phone numbers, email addresses, and spans for redaction datasets
-- **Keyphrase, terminology, and concept extraction** — domain terms in technical, legal, biomedical, financial, or product text
-- **Slot and field extraction** — destinations, dates, quantities, order numbers, product names, and similar values in conversational or transactional text
-- **Event-trigger and mention detection** — the exact text that expresses an event or concept
-- **Model correction and human-in-the-loop review** — preload model suggestions, then accept, remove, relabel, or supplement them
 
 ## Related tools
 
