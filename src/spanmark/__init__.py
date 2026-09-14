@@ -1,4 +1,4 @@
-"""spanmark: a span annotation widget."""
+"""A lightweight span-annotation widget for interactive Python environments."""
 
 from importlib.metadata import PackageNotFoundError, version
 
