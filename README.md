@@ -1,5 +1,10 @@
 # spanmark
 
+[![CI](https://img.shields.io/github/actions/workflow/status/pdhall99/spanmark/ci.yml?branch=main)](https://github.com/pdhall99/spanmark/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/spanmark)](https://pypi.org/project/spanmark/)
+[![Python](https://img.shields.io/pypi/pyversions/spanmark)](https://pypi.org/project/spanmark/)
+[![License](https://img.shields.io/github/license/pdhall99/spanmark)](https://github.com/pdhall99/spanmark/blob/main/LICENSE)
+
 A lightweight span-annotation widget for interactive Python environments.
 
 Add span annotations to text datasets in Jupyter Notebook, JupyterLab, VS Code, Google Colab, marimo, or other [anywidget](https://anywidget.dev/)-compatible environments.
