@@ -17,8 +17,8 @@ env:
   RUNNER: &runner "ubuntu-24.04"
   JOB_TIMEOUT: &job_timeout 30
   TOOL_PYTHON_VERSION: "3.10"
-  HATCH_VERSION: "1.18.0"
-  UV_VERSION: "0.12.13"
+  HATCH_VERSION: "1.18.1"
+  UV_VERSION: "0.13.4"
   DISTRIBUTION_NAME: "spanmark"
   IMPORT_NAME: "spanmark"
   DOCS_ENABLED: "false"
@@ -172,7 +172,7 @@ jobs:
           done
 
       - name: Upload coverage files
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-${{ matrix.python }}
           path: .coverage*
@@ -205,7 +205,7 @@ jobs:
         run: uv tool install "hatch==$HATCH_VERSION"
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: coverage*
           merge-multiple: true
@@ -219,7 +219,7 @@ jobs:
           hatch run "$COVERAGE_ENVIRONMENT:cov-report-markdown" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload HTML report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-report
           path: htmlcov/
@@ -345,7 +345,7 @@ jobs:
 
       - name: Upload release distributions
         if: github.ref_type == 'tag'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
           path: dist/
@@ -384,13 +384,13 @@ jobs:
       id-token: write
     steps:
       - name: Download dist
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist/
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
 
   github-release:
     name: GitHub Release
@@ -402,7 +402,7 @@ jobs:
       contents: write
     steps:
       - name: Download dist
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist/
