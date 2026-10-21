@@ -56,7 +56,7 @@ For code contributions you will need:
 - A GitHub account
 - A development environment with:
 
-  - Python 3.10 (the minimum version of Python supported)
+  - Python 3.11 (the minimum version of Python supported)
   - `hatch>=1.17`
 - Access to the internet for GitHub and installation of packages from PyPI
 
@@ -99,7 +99,7 @@ Only the checks and definition-of-done items relevant to the change need to appl
 hatch test tests/test_foo.py  # One file
 hatch test tests/test_foo.py::test_bar  # One test
 hatch test -k roundtrip  # Tests matching an expression
-hatch test --python 3.10 tests/test_foo.py  # One file, one Python version
+hatch test --python 3.11 tests/test_foo.py  # One file, one Python version
 ```
 
 Use these commands for a fast iterative development loop.

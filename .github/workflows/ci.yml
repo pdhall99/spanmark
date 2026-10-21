@@ -16,7 +16,7 @@ permissions:
 env:
   RUNNER: &runner "ubuntu-24.04"
   JOB_TIMEOUT: &job_timeout 30
-  TOOL_PYTHON_VERSION: "3.10"
+  TOOL_PYTHON_VERSION: "3.11"
   HATCH_VERSION: "1.18.1"
   UV_VERSION: "0.13.4"
   DISTRIBUTION_NAME: "spanmark"
@@ -52,6 +52,8 @@ jobs:
         run: uv tool install "hatch==$HATCH_VERSION"
 
       - name: Run pre-commit
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: hatch run pre-commit:ci
 
   discover-tests:

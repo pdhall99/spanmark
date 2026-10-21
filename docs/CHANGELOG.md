@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Removed
+
+- Support for Python 3.10, making Python 3.11 the minimum supported version
+
 ## [0.1.1] - 2026-09-10
 
 ### Fixed

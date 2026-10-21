@@ -8,11 +8,10 @@ from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import replace
 from pathlib import Path
 from types import TracebackType
-from typing import Any, TypeAlias, cast
+from typing import Any, Self, TypeAlias, cast
 
 from filelock import FileLock, Timeout
 from IPython.display import display
-from typing_extensions import Self
 
 from spanmark._autosave import AUTOSAVE_CHECKPOINT_BYTES, AutosaveOverlay
 from spanmark._model import (
