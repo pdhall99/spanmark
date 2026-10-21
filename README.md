@@ -36,7 +36,7 @@ Such datasets are needed for the training and evaluation of **span recognition**
 
 ## Installation
 
-`spanmark` requires Python 3.10 or later (see [compatibility and versioning](#compatibility-and-versioning)).
+`spanmark` requires Python 3.11 or later (see [compatibility and versioning](#compatibility-and-versioning)).
 
 Install the latest release from [PyPI](https://pypi.org/project/spanmark/):
 
@@ -159,19 +159,19 @@ Prepare a sequence of documents:
 
 ```python
 {
-  "id": "doc-1",
-  "text": "Alice joined Acme.",
-  "meta": {
-    "source": "demo"
-  },
-  "suggestions": [
-    {
-      "start": 0,
-      "end": 5,
-      "label": "PERSON",
-      "score": 0.97
-    }
-  ]
+    "id": "doc-1",
+    "text": "Alice joined Acme.",
+    "meta": {
+        "source": "demo",
+    },
+    "suggestions": [
+        {
+            "start": 0,
+            "end": 5,
+            "label": "PERSON",
+            "score": 0.97,
+        }
+    ],
 }
 ```
 
@@ -273,7 +273,7 @@ The output JSONL contains one document record per line, for example:
       {"start": 13, "end": 17, "label": "ORG", "source": "user"}
     ],
     "answer": "accept",
-    "flagged": false
+    "flagged": false,
   }
 }
 ```

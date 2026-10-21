@@ -1,5 +1,5 @@
 default_language_version:
-  python: python3.10
+  python: python3.11
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -21,16 +21,21 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
 
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: v2.30.3
+    hooks:
+      - id: pyproject-fmt
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.6 # keep consistent with hatch config
+    rev: v0.17.1 # keep consistent with hatch config
     hooks:
       # Run the linter
       - id: ruff-check
-        types_or: [python, pyi, jupyter]
+        types_or: [python, pyi, jupyter, markdown]
         args: [--fix, --config=pyproject.toml]
       # Run the formatter
       - id: ruff-format
-        types_or: [python, pyi, jupyter]
+        types_or: [python, pyi, jupyter, markdown]
         args: [--config=pyproject.toml]
 
   - repo: https://github.com/rhysd/actionlint
@@ -39,7 +44,7 @@ repos:
       - id: actionlint
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.29.0
+    rev: v1.31.1
     hooks:
       - id: zizmor
 
