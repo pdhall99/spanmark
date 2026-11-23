@@ -328,6 +328,32 @@ jobs:
             exit 1
           fi
 
+      - name: Extract release notes
+        if: github.ref_type == 'tag'
+        run: |
+          mkdir -p release-notes
+          awk -v heading="## [$GITHUB_REF_NAME]" '
+            index($0, heading) == 1 { found = 1; next }
+            found && (/^## / || /^\[[^]]+\]: /) { exit }
+            found
+          ' docs/CHANGELOG.md > release-notes/notes.md
+          if ! grep -q '[^[:space:]]' release-notes/notes.md; then
+            echo "docs/CHANGELOG.md has no '## [$GITHUB_REF_NAME]' section" >&2
+            exit 1
+          fi
+          cat >> release-notes/notes.md <<EOF
+
+          ---
+
+          Install from [PyPI](https://pypi.org/project/$DISTRIBUTION_NAME/$GITHUB_REF_NAME/):
+
+          \`\`\`shell
+          python -m pip install $DISTRIBUTION_NAME==$GITHUB_REF_NAME
+          \`\`\`
+
+          See the [full changelog](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/docs/CHANGELOG.md).
+          EOF
+
       - name: Build
         run: hatch build
 
@@ -351,6 +377,13 @@ jobs:
         with:
           name: dist
           path: dist/
+
+      - name: Upload release notes
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-notes
+          path: release-notes/
 
   ci-gate:
     name: CI gate
@@ -409,11 +442,18 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Download release notes
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-notes
+          path: release-notes/
+
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           gh release create "$GITHUB_REF_NAME" dist/* \
-            --generate-notes \
+            --title "$DISTRIBUTION_NAME $GITHUB_REF_NAME" \
+            --notes-file release-notes/notes.md \
             --verify-tag
