@@ -7,7 +7,10 @@ requires = [ "hatch-vcs", "hatchling" ]
 # [project]
 [project]
 name = "spanmark"
-description = "A lightweight span-annotation widget for interactive Python environments"
+description = """\
+    Annotate text datasets with labelled spans in Jupyter and other notebook \
+    environments\
+    """
 readme = { file = "README.md", content-type = "text/markdown" }
 keywords = [
     "annotation",

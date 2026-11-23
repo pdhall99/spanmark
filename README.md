@@ -5,9 +5,11 @@
 [![Python](https://img.shields.io/pypi/pyversions/spanmark)](https://pypi.org/project/spanmark/)
 [![License](https://img.shields.io/github/license/pdhall99/spanmark)](https://github.com/pdhall99/spanmark/blob/main/LICENSE)
 
-A lightweight span-annotation widget for interactive Python environments.
+Annotate text datasets with labelled spans in Jupyter and other notebook environments.
 
-Add span annotations to text datasets in Jupyter Notebook, JupyterLab, VS Code, Google Colab, marimo, or other [anywidget](https://anywidget.dev/)-compatible environments.
+spanmark shows one document at a time, allowing you to add, remove, or relabel spans and then accept, reject, or ignore the document.
+Every change is autosaved to JSONL, so annotation can stop and resume across sessions without losing work.
+It runs in Jupyter Notebook, JupyterLab, VS Code, Google Colab, marimo, and other [anywidget](https://anywidget.dev/)-compatible environments.
 
 ![spanmark widget showing named-entity spans and document decisions](https://raw.githubusercontent.com/pdhall99/spanmark/main/assets/screenshot.png)
 
@@ -16,7 +18,6 @@ Add span annotations to text datasets in Jupyter Notebook, JupyterLab, VS Code, 
 - [Background](#background)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Related tools](#related-tools)
 - [Compatibility and versioning](#compatibility-and-versioning)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
@@ -24,15 +25,30 @@ Add span annotations to text datasets in Jupyter Notebook, JupyterLab, VS Code, 
 
 ## Background
 
-spanmark helps you to make a human-verified dataset of labelled, character-based spans over document text.
-Such datasets are needed for the training and evaluation of **span recognition** tasks such as
+Human-verified datasets of labelled, character-based spans over document text are needed for the training and evaluation of **span recognition** tasks such as
 
 - **Named entity recognition (NER)** — people, organizations, locations, products, dates, and other entity mentions
 - **PII and sensitive-data annotation** — names, addresses, account identifiers, phone numbers, email addresses, and spans for redaction datasets
 - **Keyphrase, terminology, and concept extraction** — domain terms in technical, legal, biomedical, financial, or product text
 - **Slot and field extraction** — destinations, dates, quantities, order numbers, product names, and similar values in conversational or transactional text
 - **Event-trigger and mention detection** — the exact text that expresses an event or concept
-- **Model correction and human-in-the-loop review** — preload model suggestions, then accept, remove, relabel, or supplement them
+
+But most established tools for making such annotations are full web applications.
+Using one usually means installing and running a server, setting up a project, converting your documents into its import format, and converting its exports back again afterwards.
+That overhead suits a large team project, but it is heavy for someone who wants to review a few hundred model outputs or build a small evaluation set.
+
+spanmark is a span-annotation widget that runs in notebook environments such as Jupyter.
+Annotations can be made from scratch, or model suggestions can be preloaded to be accepted, removed, relabelled, or added to.
+It installs with pip into the notebook's environment and needs no server, database, or user accounts.
+Documents go in as Python dictionaries or JSONL, and annotations come out as JSONL with the original records preserved.
+
+### Related tools
+
+- [Label Studio](https://labelstud.io/) is a general-purpose data labelling platform across text and other modalities
+- [doccano](https://github.com/doccano/doccano) is an open-source collaborative text annotation tool for tasks including text classification and named entity recognition
+- [INCEpTION](https://inception-project.github.io/) is a collaborative text annotation platform with configurable span, relation, and chain layers plus curation workflows
+- [brat](https://brat.nlplab.org/) is a web-based tool for structured text annotation for spans, relations, events, and attributes
+- [Prodigy](https://prodi.gy/) is commercial NLP annotation software with named-entity, overlapping-span, classification, relation, and model-assisted workflows
 
 ## Installation
 
@@ -360,14 +376,6 @@ session.save()
 
 Normal session close and workflow completion also checkpoint.
 If the process is interrupted before that happens, keep the hidden autosave file beside the JSONL so spanmark can recover it on the next open.
-
-## Related tools
-
-- [Label Studio](https://labelstud.io/) is a general-purpose data labeling across text and other modalities
-- [doccano](https://github.com/doccano/doccano) is an open-source collaborative text annotation for tasks including text classification and named entity recognition
-- [INCEpTION](https://inception-project.github.io/) is a collaborative text annotation with configurable span, relation, and chain layers plus curation workflows
-- [brat](https://brat.nlplab.org/) is a web-based structured text annotation for spans, relations, events, and attributes
-- [Prodigy](https://prodi.gy/) is a commercial NLP annotation software with named-entity, overlapping-span, classification, relation, and model-assisted workflows
 
 ## Compatibility and versioning
 
