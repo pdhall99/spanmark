@@ -394,13 +394,13 @@ For releases before `1.0.0`, the public API should be considered under developme
 
 ### Python-version compatibility
 
-This project supports Python feature releases from their official final release until their official end-of-life (EOL).
+This project supports Python feature releases from their official final release until their [official end-of-life](https://devguide.python.org/versions/).
 
 Support for a new Python feature release is generally introduced in the first minor release of this project following the upstream Python release.
 Python feature releases may be dropped once they reach the end of their upstream support cycle.
 The currently supported Python versions are declared in the package metadata.
 
-Dropping an EOL Python version is considered a change to the supported runtime environment rather than a backwards-incompatible change to this project's public API, and therefore does not by itself require a new major release.
+Dropping an end-of-life Python version is considered a change to the supported runtime environment rather than a backwards-incompatible change to this project's public API, and therefore does not by itself require a new major release.
 
 ## Acknowledgements
 
