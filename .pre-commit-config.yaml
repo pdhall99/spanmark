@@ -18,16 +18,18 @@ repos:
       - id: mixed-line-ending
       - id: name-tests-test
         args: [--pytest-test-first]
+        # Test helper modules start with an underscore
+        exclude: ^tests/(.*/)?_[^/]*\.py$
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.30.3
+    rev: v2.31.2
     hooks:
       - id: pyproject-fmt
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.1 # keep consistent with hatch config
+    rev: v0.17.6 # keep consistent with hatch config
     hooks:
       # Run the linter
       - id: ruff-check
@@ -44,7 +46,7 @@ repos:
       - id: actionlint
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.31.1
+    rev: v1.33.1
     hooks:
       - id: zizmor
 

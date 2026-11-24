@@ -1,12 +1,13 @@
 # [build-system]
 [build-system]
 build-backend = "hatchling.build"
-requires = [ "hatch-vcs", "hatchling" ]
+requires = [ "hatch-vcs", "hatchling>=1.32" ]
 
 # --------------------------------------------------------------------------------------
 # [project]
 [project]
 name = "spanmark"
+import-names = [ "spanmark" ]
 description = """\
     Annotate text datasets with labelled spans in Jupyter and other notebook \
     environments\
@@ -82,14 +83,19 @@ test = [
     "coverage-enable-subprocess==1",
     "pytest~=9.0",
     "pytest-mock~=3.12",
-    "pytest-randomly~=4.1",
+    "pytest-randomly~=5.0",
     "pytest-rerunfailures~=16.0",
     "pytest-sugar",
     "pytest-xdist[psutil]~=3.5",
 ]
-check-code = [ "ruff==0.17.1" ]  # keep consistent with pre-commit-config.yaml
+check-code = [ "ruff==0.17.6" ]  # keep consistent with pre-commit-config.yaml
 check-fmt = [ { include-group = "check-code" } ]
-check-types = [ "pyrefly==1.4", { include-group = "test" } ]
+check-types = [ "pyrefly==1.5", { include-group = "test" } ]
+
+# --------------------------------------------------------------------------------------
+# [tool.hatch]
+[tool.hatch]
+requires-hatch = ">=1.18"
 
 [tool.hatch.version.raw-options]
 version_scheme = "no-guess-dev"
@@ -101,8 +107,6 @@ source = "vcs"
 [tool.hatch.metadata]
 allow-direct-references = true
 
-# --------------------------------------------------------------------------------------
-# [tool.hatch]
 [tool.hatch.build.hooks.vcs]
 version-file = "src/spanmark/_version.py"
 
@@ -138,8 +142,14 @@ dependencies = []
 config-path = "pyproject.toml"
 dependency-groups = [ "check-types" ]
 
+[tool.hatch.envs.hatch-static-analysis]
+dependencies = []
+config-path = "pyproject.toml"
+dependency-groups = [ "check-code" ]
+
 [tool.hatch.envs.hatch-test]
 dependencies = []
+default-args = []
 dependency-groups = [ "test" ]
 
 [[tool.hatch.envs.hatch-test.matrix]]
@@ -214,7 +224,7 @@ column_width = 88
 indent = 4
 keep_full_version = false
 generate_python_version_classifiers = false
-max_supported_python = "3.14"
+max_supported_python = "3.15"
 table_format = "long"
 sub_table_spacing = "\n"
 separate_root_table = "\n"
@@ -234,9 +244,13 @@ preset = "strict"
 
 # --------------------------------------------------------------------------------------
 # [tool.pytest]
-[tool.pytest.ini_options]
-testpaths = [ "README.md", "tests" ]
-addopts = "-ra -q --doctest-glob='*.md'"
+[tool.pytest]
+addopts = [ "-ra", "-q", "--doctest-modules", "--doctest-glob=*.md" ]
+filterwarnings = [ "error" ]
+log_level = "INFO"
+minversion = "9.0"
+strict = true
+testpaths = [ "tests", "src/spanmark", "README.md" ]
 
 # --------------------------------------------------------------------------------------
 # [tool.coverage]

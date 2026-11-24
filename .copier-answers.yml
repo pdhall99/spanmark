@@ -1,0 +1,37 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 16ecf4e
+_src_path: gh:pdhall99/python-project-template
+author_email: 20580126+pdhall99@users.noreply.github.com
+author_name: PD Hall
+copyright_year: 2026
+docs_enabled: false
+github_owner: pdhall99
+keywords:
+- annotation
+- anywidget
+- data labeling
+- data labelling
+- human in the loop
+- information extraction
+- jupyter
+- named entity recognition
+- ner
+- nlp
+- notebook
+- sequence labeling
+- sequence labelling
+- span annotation
+- text annotation
+- text labeling
+- text labelling
+- widget
+package_name: spanmark
+project_description: Annotate text datasets with labelled spans in Jupyter and other
+    notebook environments
+project_name: spanmark
+python_support: eol
+runtime_dependencies:
+- anywidget
+- filelock>=3.16
+- ipython
+- traitlets

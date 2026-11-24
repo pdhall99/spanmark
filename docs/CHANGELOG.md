@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Import-Name` package metadata ([PEP 794](https://peps.python.org/pep-0794/)), declaring `spanmark` as the import name
+- `py.typed` marker, so type checkers use the package's type annotations
+
 ### Removed
 
 - Support for Python 3.10, making Python 3.11 the minimum supported version
