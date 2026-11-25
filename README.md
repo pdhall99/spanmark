@@ -52,7 +52,7 @@ Documents go in as Python dictionaries or JSONL, and annotations come out as JSO
 
 ## Installation
 
-`spanmark` requires Python 3.11 or later (see [compatibility and versioning](#compatibility-and-versioning)).
+`spanmark` requires Python 3.11 or later (see [Compatibility and versioning](#compatibility-and-versioning)).
 
 Install the latest release from [PyPI](https://pypi.org/project/spanmark/):
 

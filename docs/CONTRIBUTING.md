@@ -231,12 +231,12 @@ Once a version is on PyPI it cannot be uploaded again, so release any fix as a n
 
 ### Updating from the template
 
-This project was generated from a [Copier](https://copier.readthedocs.io/) template, recorded with your answers to its questions in `.copier-answers.yml`.
+This project was generated from a [Copier](https://copier.readthedocs.io/) template, recorded with your answers to its questions in `.copier-answers.yml`, where `_src_path` is the template's location.
 
-To apply a newer version of the template, run
+To apply a newer version of the template, run this from a clone of the template, giving the path to this project:
 
 ```shell
-uvx copier update --defaults
+hatch run update PATH
 ```
 
 Review the changes and resolve any conflicts, where the project has changed the same lines as the template, then commit them through a pull request.
@@ -249,7 +249,7 @@ Run every development command through Hatch, which manages the environments for 
 
 - Don't skip pre-commit hooks or checks, for example with `git commit --no-verify`
 - Don't edit `src/spanmark/_version.py`: it is generated from the git tag
-- Commit any changes the checks make, as described in [checking your changes](#checking-your-changes)
+- Commit any changes the checks make, as described in [Checking your changes](#checking-your-changes)
 
 ```shell
 hatch run pre-commit:install  # Set up the pre-commit hooks

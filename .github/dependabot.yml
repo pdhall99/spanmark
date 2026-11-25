@@ -16,7 +16,8 @@ updates:
         patterns: ["*"]
 
   # When this bumps ruff-pre-commit, bump ruff in pyproject.toml's check-code
-  # group to the same version in the same pull request.
+  # group to the same version in the same pull request: the ruff-version hook
+  # fails until you do.
   - package-ecosystem: "pre-commit"
     directory: "/"
     schedule:
